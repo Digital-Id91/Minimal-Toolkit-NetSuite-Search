@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Editor — Admin Toolkit</title>
+  <style>
+    :root {
+      --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      --chrome: #191d24;
+      --chrome-raised: #232833;
+      --chrome-border: #323947;
+      --stage: #101318;
+      --text: #e8ebf1;
+      --text-muted: #9aa3b2;
+      --accent: #5b96ff;
+      --accent-soft: rgba(91, 150, 255, 0.22);
+      --success: #10b981;
+      --success-hover: #0d9e6f;
+      --sky: #0ea5e9;
+      --sky-hover: #0284c7;
+      --store: #3b82f6;
+      --store-hover: #2563eb;
+      --gray: #6b7280;
+      --gray-hover: #4b5563;
+      --amber: #f59e0b;
+      --amber-hover: #d97706;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: var(--stage);
+      font-family: var(--font-ui);
+      color: var(--text);
+    }
+
+    /* ---------- Toolbar ---------- */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 14px;
+      background: var(--chrome);
+      border-bottom: 1px solid var(--chrome-border);
+      flex-wrap: wrap;
+    }
+
+    .separator { width: 1px; height: 26px; background: var(--chrome-border); }
+
+    .tool-group { display: flex; gap: 6px; align-items: center; }
+
+    .group-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-right: 2px;
+      user-select: none;
+    }
+
+    .tool-btn {
+      padding: 7px 11px;
+      border: 1px solid var(--chrome-border);
+      background: var(--chrome-raised);
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 7px;
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .tool-btn:hover { background: #2b3140; border-color: #414a5c; }
+    .tool-btn:active { transform: translateY(1px); }
+    .tool-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .tool-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .settings-group { display: flex; align-items: center; gap: 12px; }
+    .settings-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    input[type="color"] {
+      height: 30px;
+      width: 38px;
+      padding: 2px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 6px;
+      background: var(--chrome-raised);
+      cursor: pointer;
+    }
+
+    input[type="range"] {
+      width: 96px;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--chrome-border);
+      border-radius: 99px;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--chrome);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ---------- Actions (right side) ---------- */
+
+    .actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    #galleryStatus, #clipStatus {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 11px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--chrome-border);
+      border-radius: 999px;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .action-btn {
+      border: none;
+      color: #fff;
+      padding: 7px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .action-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+    .action-btn:active { transform: translateY(0); box-shadow: none; }
+    .action-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .action-btn { background: var(--success); }
+    .action-btn:hover { background: var(--success-hover); }
+    .action-btn.secondary { background: var(--gray); }
+    .action-btn.secondary:hover { background: var(--gray-hover); }
+    .store-btn { background: var(--store) !important; }
+    .store-btn:hover { background: var(--store-hover) !important; }
+
+    /* ---------- Hint bar ---------- */
+
+    .hint-bar {
+      padding: 5px 14px;
+      background: var(--chrome-raised);
+      border-bottom: 1px solid var(--chrome-border);
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      user-select: none;
+    }
+    .hint-bar b { color: var(--text); font-weight: 600; }
+
+    /* ---------- Canvas stage ---------- */
+
+    .canvas-wrapper {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 36px;
+      background:
+        radial-gradient(ellipse at center, rgba(91, 150, 255, 0.05), transparent 65%),
+        var(--stage);
+    }
+
+    canvas {
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--chrome-border);
+      border-radius: 3px;
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333a48; border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background-color: #414a5c; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="tool-group">
+      <span class="group-label">Draw</span>
+      <button class="tool-btn active" id="btnSquare" title="Draw a rectangle">⬜ Square</button>
+      <button class="tool-btn" id="btnArrow" title="Draw an arrow">↗️ Arrow</button>
+      <button class="tool-btn" id="btnText" title="Add text: drag a box, type, then click away">🔤 Text</button>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="tool-group">
+      <button class="tool-btn" id="btnUndo" title="Undo the last shape">↩️ Undo</button>
+      <button class="tool-btn" id="btnClear" title="Remove all shapes and start over">❌ Clear</button>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="settings-group">
+      <label title="Stroke and text color">Color <input type="color" id="colorPicker" value="#ff0000"></label>
+      <label title="Controls stroke thickness and text size">Size <input type="range" id="sizeSlider" min="2" max="20" value="3"></label>
+    </div>
+
+    <div class="actions">
+      <div id="clipStatus" title="Whether the current image has been copied to your clipboard">📋 <span style="color: #9ca3af; margin-left: 4px;">Not copied</span></div>
+      <div id="galleryStatus" title="Whether the current image is saved in the gallery">...</div>
+
+      <button class="action-btn" style="background: #0ea5e9;" id="btnViewGallery" title="Open the full gallery in a new tab">🖼️ View Gallery</button>
+
+      <button class="action-btn store-btn" id="btnSave" title="Save the current image to the gallery">💾 Save to Gallery</button>
+
+      <button class="action-btn secondary" id="btnCopy">📋 Copy</button>
+      <button class="action-btn" style="background: #f59e0b;" id="btnDownload">⬇️ Download</button>
+    </div>
+  </div>
+
+  <div class="hint-bar">
+    <span><b>Draw:</b> pick a tool, then drag on the image</span>
+    <span><b>Text:</b> drag a box, type, click away to place it</span>
+    <span><b>Undo</b> removes the last shape · <b>Clear</b> restores the original</span>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script src="screenshot-editor.js"></script>
+</body>
+</html>

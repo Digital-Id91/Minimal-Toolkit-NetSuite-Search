@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Helpdesk Admin Toolkit</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="textEditor.css">
+</head>
+<body class="dark">
+  <div class="toolkit-container">
+
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Admin Toolkit</span>
+      </div>
+      <div class="header-actions">
+        <button id="backToPopupBtn" class="pill-btn pill-ghost" title="Close this tab and continue in a compact popup window">↩️ Back to Popup</button>
+        <button id="globalPopOutTabBtn" class="pill-btn" title="Open the toolkit in a full browser tab — more room for the gallery and notes">🖥️ Full Tab</button>
+        <button id="globalPopOutBtn" class="icon-btn" title="Open in a standalone window">↗️</button>
+        <label class="header-switch" title="Toggle dark mode">
+          <input type="checkbox" id="globalDarkModeToggle">
+          <span class="knob"></span>
+          <span class="header-switch-icon">🌙</span>
+        </label>
+      </div>
+    </header>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="overlay">🏷️ Overlay</button>
+      <button class="tab-btn" data-tab="context-menu">🔎 NetSuite Search</button>
+      <button class="tab-btn" data-tab="text-editor">📝 Notes</button>
+      <button class="tab-btn" data-tab="screenshots">📸 Image Tool</button>
+      <button class="tab-btn" data-tab="clipboard">📋 Clipboard</button>
+    </nav>
+
+    <!-- ============ OVERLAY ============ -->
+    <div class="tab-content active" id="overlay">
+      <p class="tab-intro">Shows a large watermark on the sites you choose, so you always know which environment you're working in.</p>
+
+      <div class="card">
+        <div class="switch-row">
+          <label class="switch-label-block" for="overlayToggle">
+            <strong>Show overlay</strong>
+            <small>Display the watermark label on matching sites</small>
+          </label>
+          <span class="switch"><input type="checkbox" id="overlayToggle"><span class="knob"></span></span>
+        </div>
+        <div class="switch-row">
+          <label class="switch-label-block" for="dragToggle">
+            <strong>Allow dragging</strong>
+            <small>Drag the watermark to reposition it — the spot is remembered per browser</small>
+          </label>
+          <span class="switch"><input type="checkbox" id="dragToggle"><span class="knob"></span></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">NetSuite sandbox labels</div>
+        <p class="card-help">Sandbox pages are detected automatically from the URL — these are the labels shown on them. Production never gets a watermark.</p>
+        <div class="grid-2">
+          <div class="field">
+            <label for="labelSB1">…sb1.app.netsuite.com</label>
+            <input type="text" id="labelSB1" class="input" placeholder="SB1">
+          </div>
+          <div class="field">
+            <label for="labelSB2">…sb2.app.netsuite.com</label>
+            <input type="text" id="labelSB2" class="input" placeholder="SB2">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Custom overlays</div>
+        <p class="card-help">Watermark any other site — a WMS test environment, a staging portal, anything. Matching is by domain.</p>
+        <div class="inline-form">
+          <input type="text" id="customUrl" class="input grow-2" placeholder="Domain (e.g. test.example.com)">
+          <input type="text" id="customText" class="input grow-1" placeholder="Label">
+          <button id="addCustomBtn" class="btn btn-primary">Add</button>
+        </div>
+        <ul id="customOverlayList" class="mini-list"></ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Appearance</div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="transparencyRange">Transparency</label>
+            <div class="control-row">
+              <input type="range" id="transparencyRange" min="0.1" max="1" step="0.1" value="0.3">
+              <span class="range-value"></span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="sizeRange">Size</label>
+            <div class="control-row">
+              <input type="range" id="sizeRange" min="2" max="30" step="0.5" value="10">
+              <span class="range-value">vw</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="rotationRange">Rotation</label>
+            <div class="control-row">
+              <input type="range" id="rotationRange" min="-180" max="180" step="1" value="0">
+              <span class="range-value">°</span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="fontSelect">Font</label>
+            <select id="fontSelect" class="input">
+              <option value="Arial">Arial</option>
+              <option value="Helvetica">Helvetica</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Impact">Impact</option>
+              <option value="Courier New">Courier</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="colorPicker">Color</label>
+            <input type="color" id="colorPicker" value="#AAAAAA">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ NETSUITE SEARCH ============ -->
+    <div class="tab-content" id="context-menu">
+      <p class="tab-intro">Look up NetSuite records from any webpage — highlight, right-click, done.</p>
+
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">How it works</span>
+          <span id="envBadge" class="env-badge env-prod" title="Current search target — set it under Connection below">PROD</span>
+        </div>
+        <ol class="steps">
+          <li>Highlight text on any page — a sales order number, item, RMA, or keyword.</li>
+          <li>Right-click and choose <strong>Search <em>[Environment]</em> Record</strong>.</li>
+          <li>Pick a record type — results open in a new NetSuite tab.</li>
+        </ol>
+        <p class="card-help">Record types: Quick Search (global) · Sales Order · Purchase Order · Transfer Order · Item · Return.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Connection</div>
+        <div class="field">
+          <label for="accountIdInput">NetSuite account ID</label>
+          <input type="text" id="accountIdInput" class="input" placeholder="e.g. 1234567">
+          <small class="field-hint">It's the subdomain of your NetSuite URL: https://<b>&lt;account-id&gt;</b>.app.netsuite.com. Required before search will work.</small>
+        </div>
+        <div class="field">
+          <label for="envSelect">Target environment</label>
+          <select id="envSelect" class="input">
+            <option value="prod">Production</option>
+            <option value="sb1">Sandbox 1</option>
+            <option value="sb2">Sandbox 2</option>
+          </select>
+          <small class="field-hint">The badge in "How it works" above and the toolbar icon always show the current target, so a sandbox search can't sneak into Production.</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recommended NetSuite setting</div>
+        <p class="card-help">Turn off <a id="prefLink" href="#" target="_blank">Show List When Only One Result</a> so a single match opens the record directly instead of a one-row list. <a href="#" id="illustrateLink">(show me where)</a></p>
+      </div>
+    </div>
+
+    <!-- ============ NOTES ============ -->
+    <div class="tab-content" id="text-editor">
+      <div class="tool-section">
+        <div id="text-editor-container"></div>
+      </div>
+    </div>
+
+    <!-- ============ IMAGE TOOL ============ -->
+    <div class="tab-content" id="screenshots">
+      <div class="tool-section">
+        <button id="btnCapture" class="btn btn-primary btn-block">📸 Capture Visible Screen</button>
+
+        <div class="capture-methods">
+          <div class="method">
+            <span class="method-title">Full screen</span>
+            <span class="method-desc">The button above captures this tab and opens it in the annotation editor.</span>
+          </div>
+          <div class="method">
+            <span class="method-title">Selected area</span>
+            <span class="method-desc">On any page: right-click → <strong>📸 Capture Selected Area</strong> (or press <kbd>Ctrl</kbd>+<kbd>Q</kbd>), then drag a box around what you need.</span>
+          </div>
+        </div>
+
+        <div class="card options-card">
+          <div class="switch-row">
+            <label class="switch-label-block" for="chkCache">
+              <strong>Save full-screen captures to gallery</strong>
+              <small>Keep a copy below automatically when you capture the visible screen</small>
+            </label>
+            <span class="switch"><input type="checkbox" id="chkCache" checked><span class="knob"></span></span>
+          </div>
+          <div class="switch-row">
+            <label class="switch-label-block" for="chkSnipCache">
+              <strong>Save selected-area captures to gallery</strong>
+              <small>Keep a copy below automatically when you snip an area</small>
+            </label>
+            <span class="switch"><input type="checkbox" id="chkSnipCache" checked><span class="knob"></span></span>
+          </div>
+          <div class="switch-row">
+            <label class="switch-label-block" for="chkCopyOnCapture">
+              <strong>Copy image on capture</strong>
+              <small>Also place each new capture on your clipboard, ready to paste into a ticket</small>
+            </label>
+            <span class="switch"><input type="checkbox" id="chkCopyOnCapture"><span class="knob"></span></span>
+          </div>
+        </div>
+
+        <div class="gallery-head">
+          <div><span class="card-title">Gallery</span> <span class="muted">· keeps your 10 most recent captures, newest first</span></div>
+          <button id="btnClearGallery" class="link-danger">Clear gallery</button>
+        </div>
+        <p class="tab-intro">Click a thumbnail to open it in the editor — draw boxes, arrows, and text, then copy, download, or save changes back here. Tick thumbnails to open or delete several at once.</p>
+
+        <div id="bulkActions" class="bulk-bar">
+          <span id="selectedCount">0 selected</span>
+          <div class="bulk-btns">
+            <button id="btnOpenSelected" class="btn btn-secondary btn-sm">↗️ Open</button>
+            <button id="btnDeleteSelected" class="btn btn-danger btn-sm">🗑️ Delete</button>
+          </div>
+        </div>
+
+        <div id="galleryList" class="screenshot-grid"></div>
+      </div>
+    </div>
+
+    <!-- ============ CLIPBOARD ============ -->
+    <div class="tab-content" id="clipboard">
+      <p class="tab-intro">Two time-savers for repetitive copy-and-paste work.</p>
+
+      <div class="card">
+        <div class="switch-row">
+          <label class="switch-label-block" for="chkAlwaysTrim">
+            <strong>Always trim whitespace on copy</strong>
+            <small>Strips leading and trailing spaces from anything you copy on a webpage — handy for order numbers copied out of NetSuite grids.</small>
+          </label>
+          <span class="switch"><input type="checkbox" id="chkAlwaysTrim"><span class="knob"></span></span>
+        </div>
+      </div>
+
+      <div class="card" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+        <div class="card-title">Saved values</div>
+        <p class="card-help">Keep the snippets you paste all day — ticket templates, IDs, canned replies. To use one on any webpage: click into a text field, right-click, choose <strong>Paste Saved</strong>, and pick the value — it's typed straight into the field. The list order below is the order in that menu: drag ⋮⋮ to rearrange, ✏️ to edit, 🗑️ to remove.</p>
+        <div class="inline-form">
+          <input type="text" id="clipboardInput" class="input grow-1" placeholder="Enter a value to save…">
+          <button id="addClipboardBtn" class="btn btn-primary">Add</button>
+        </div>
+        <ul id="clipboardList" class="stack-list"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="textEditor.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

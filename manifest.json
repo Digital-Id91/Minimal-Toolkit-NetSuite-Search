@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Minimal Toolkit + NetSuite Search",
+  "version": "1.0.0",
+  "description": "Minimal browser tools; Text save/edit, image capture/illustrator. Custom clipboard, NetSuite search, custom overlays.",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "commands": {
+    "capture_selected_area": {
+      "suggested_key": {
+        "default": "Ctrl+Q",
+        "mac": "Ctrl+Q"
+      },
+      "description": "Capture Selected Area"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icon16.png", "icon16_1.png", "icon16_2.png", "popup_image.png"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notes — Admin Toolkit</title>
+  <link rel="stylesheet" href="editor-styles.css" />
+</head>
+<body class="dark">
+
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h2>Saved Notes</h2>
+        <p class="sidebar-hint">Drag ⋮⋮ to reorder · ✏️ to rename</p>
+      </div>
+      <ul id="noteList"></ul>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <button id="newNoteBtn" class="btn btn-success" title="Create a new blank note">➕ New Note</button>
+        <button id="deleteNoteBtn" class="btn btn-danger" title="Delete the current note">🗑️ Delete</button>
+        <button id="saveAsButton" class="btn btn-violet" title="Download the current note as a .txt file">⬇️ Download .txt</button>
+        <button id="saveToClipboardBtn" class="btn btn-neutral" title="Add this note (or just the selected text) to Saved Clipboard Values — usable anywhere via right-click → Paste Saved">📋 Save to Clipboard</button>
+        <button id="backToToolkitBtn" class="btn btn-accent" title="Swap this editor for the full Admin Toolkit in this same tab (opens on the Notes tab)">🧰 Toolkit Tab</button>
+
+        <div class="toolbar-spacer"></div>
+
+        <div class="toolbar-settings">
+          <label class="fs-control" title="Editor font size">
+            <span>Font</span>
+            <input type="number" id="textSize" min="12" max="72" value="14"/>
+            <span class="unit">px</span>
+          </label>
+          <label class="chk" title="Show line numbers">
+            <input type="checkbox" id="lineNumbersToggle" />
+            <span>Lines</span>
+          </label>
+          <label class="chk" title="Toggle dark mode">
+            <input type="checkbox" id="darkModeToggle" />
+            <span>Dark</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="editor-shell">
+        <div id="lineNumbers" class="line-numbers"></div>
+        <textarea id="editor" placeholder="Start typing — the note saves itself and takes its name from the first line."></textarea>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="editor-script.js"></script>
+</body>
+</html>

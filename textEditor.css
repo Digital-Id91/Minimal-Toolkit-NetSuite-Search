@@ -1,0 +1,377 @@
+/* ============================================================
+   Text Editor component (embedded in popup) — restyled
+   ------------------------------------------------------------
+   Class names are consumed by textEditor.js — do not rename.
+   The scoped --text-editor-* variables now inherit from the
+   popup's global tokens, so light/dark theming is automatic.
+   The .text-editor-dark class is still toggled by JS but no
+   longer needs its own palette (body.dark drives the globals).
+   ============================================================ */
+
+.text-editor-container {
+  --text-editor-primary-font: var(--font-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  --text-editor-mono: var(--mono, Consolas, Menlo, monospace);
+  --text-editor-border-radius: 7px;
+  --text-editor-transition: all 0.15s ease;
+
+  --text-editor-bg-color: var(--bg-secondary, #ffffff);
+  --text-editor-text-color: var(--text-primary, #1c2433);
+  --text-editor-muted: var(--text-muted, #7d8797);
+  --text-editor-border-color: var(--border-color, #e3e7ee);
+  --text-editor-button-bg: var(--bg-tertiary, #f3f5f9);
+  --text-editor-button-hover: var(--border-color, #e3e7ee);
+  --text-editor-button-active: var(--accent-color, #2f6fed);
+  --text-editor-button-active-text: #ffffff;
+  --text-editor-textarea-bg: var(--input-bg, #ffffff);
+  --text-editor-focus-ring: var(--accent-color, #2f6fed);
+  --text-editor-focus-soft: var(--accent-color-light, rgba(47, 111, 237, 0.14));
+  --text-editor-search-btn-bg: var(--success, #10b981);
+  --text-editor-search-btn-hover: var(--success-hover, #0d9e6f);
+  --text-editor-clear-btn-bg: var(--danger, #ef4444);
+  --text-editor-clear-btn-hover: var(--danger-hover, #dc2626);
+  --text-editor-line-number-bg: var(--bg-tertiary, #f3f5f9);
+  --text-editor-line-number-text: var(--text-muted, #7d8797);
+  --text-editor-line-number-border: var(--border-color, #e3e7ee);
+}
+
+.text-editor-container * { box-sizing: border-box; }
+
+.text-editor-container {
+  font-family: var(--text-editor-primary-font);
+  background: var(--text-editor-bg-color);
+  color: var(--text-editor-text-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- Main column ---------- */
+
+.text-editor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ---------- Toolbar ---------- */
+
+.text-editor-note-controls {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.text-editor-note-controls button {
+  padding: 6px 11px !important;
+  font-family: var(--text-editor-primary-font);
+  font-size: 12px !important;
+  font-weight: 600;
+  border: 1px solid var(--text-editor-border-color) !important;
+  border-radius: var(--text-editor-border-radius);
+  background: var(--text-editor-textarea-bg) !important;
+  color: var(--text-editor-text-color) !important;
+  cursor: pointer;
+  transition: var(--text-editor-transition);
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+}
+
+.text-editor-note-controls button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+.text-editor-note-controls button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.text-editor-note-controls button:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+}
+.text-editor-note-controls button:disabled:hover { transform: none; box-shadow: none; }
+
+.text-editor-new-note-btn {
+  background: var(--text-editor-search-btn-bg) !important;
+  color: #fff !important;
+  border-color: var(--text-editor-search-btn-bg) !important;
+}
+.text-editor-new-note-btn:hover { background: var(--text-editor-search-btn-hover) !important; }
+
+.text-editor-delete-btn {
+  background: var(--text-editor-clear-btn-bg) !important;
+  color: #fff !important;
+  border-color: var(--text-editor-clear-btn-bg) !important;
+}
+.text-editor-delete-btn:hover:not(:disabled) { background: var(--text-editor-clear-btn-hover) !important; }
+.text-editor-delete-btn:disabled {
+  background: var(--text-editor-border-color) !important;
+  border-color: var(--text-editor-border-color) !important;
+}
+
+.text-editor-fullscreen-btn {
+  background: var(--text-editor-button-active) !important;
+  color: var(--text-editor-button-active-text) !important;
+  border-color: var(--text-editor-button-active) !important;
+}
+.text-editor-fullscreen-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* ---------- Editor area ---------- */
+
+.text-editor-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.text-editor-editor-container {
+  flex: 1;
+  display: flex;
+  border: 1px solid var(--text-editor-border-color);
+  border-radius: var(--text-editor-border-radius);
+  background: var(--text-editor-textarea-bg);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.text-editor-editor-container:focus-within {
+  border-color: var(--text-editor-focus-ring);
+  box-shadow: 0 0 0 3px var(--text-editor-focus-soft);
+}
+
+/* Line numbers and textarea share identical type metrics so rows align
+   at every font size (textEditor.js updates font-size on BOTH). */
+.text-editor-line-numbers,
+#textEditorTextarea {
+  font-family: var(--text-editor-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.text-editor-line-numbers {
+  display: none;
+  width: 46px;
+  flex-shrink: 0;
+  background: var(--text-editor-line-number-bg);
+  border-right: 1px solid var(--text-editor-line-number-border);
+  color: var(--text-editor-line-number-text);
+  padding: 8px 8px 8px 4px;
+  text-align: right;
+  user-select: none;
+  overflow: hidden;
+  white-space: pre;
+}
+.text-editor-line-numbers.visible { display: block; }
+
+#textEditorTextarea {
+  flex: 1;
+  width: 100%;
+  padding: 8px;
+  resize: none;
+  border: none;
+  background: transparent;
+  color: var(--text-editor-text-color);
+  outline: none;
+}
+#textEditorTextarea::placeholder { color: var(--text-editor-muted); opacity: 0.8; }
+
+/* ---------- Bottom controls ---------- */
+
+.text-editor-bottom-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  background: var(--text-editor-button-bg);
+  border-radius: var(--text-editor-border-radius);
+}
+
+.text-editor-bottom-controls .text-editor-settings { margin-left: auto; }
+
+.text-editor-settings {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+}
+
+.text-editor-font-size-control { display: flex; align-items: center; gap: 4px; }
+
+.text-editor-font-size-input {
+  width: 42px;
+  padding: 3px 4px;
+  border: 1px solid var(--text-editor-border-color);
+  border-radius: 5px;
+  background: var(--text-editor-textarea-bg);
+  color: var(--text-editor-text-color);
+  font-size: 11px;
+  text-align: center;
+}
+.text-editor-font-size-input:focus {
+  outline: none;
+  border-color: var(--text-editor-focus-ring);
+  box-shadow: 0 0 0 2px var(--text-editor-focus-soft);
+}
+
+.text-editor-font-size-unit { font-size: 10px; color: var(--text-editor-muted); font-weight: 600; }
+
+.text-editor-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.text-editor-checkbox-text { font-weight: 600; color: var(--text-editor-text-color); }
+
+.text-editor-settings input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--text-editor-focus-ring);
+  cursor: pointer;
+}
+
+/* ---------- Saved notes list ---------- */
+
+.text-editor-sidebar-header {
+  padding: 7px 10px 4px;
+  border-top: 1px solid var(--text-editor-border-color);
+  background: var(--text-editor-button-bg);
+}
+.text-editor-sidebar-header h2 {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-editor-muted);
+}
+
+.text-editor-sidebar {
+  min-height: 56px;
+  max-height: 158px; /* ~4 rows, then scrolls, keeping the editor visible */
+  background: var(--text-editor-button-bg);
+  padding: 5px 8px 8px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+#textEditorNoteList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#textEditorNoteList li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--text-editor-border-color);
+  border-left: 3px solid transparent;
+  background: var(--text-editor-textarea-bg);
+  color: var(--text-editor-text-color);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--text-editor-transition);
+}
+#textEditorNoteList li:hover {
+  border-color: var(--text-editor-button-active);
+  background: var(--text-editor-button-hover);
+}
+#textEditorNoteList li.active {
+  border-color: var(--text-editor-button-active);
+  border-left: 3px solid var(--text-editor-button-active);
+  background: var(--text-editor-focus-soft);
+  font-weight: 600;
+}
+
+.text-editor-note-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-editor-note-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  opacity: 0.4;
+  font-size: 11px;
+  user-select: none;
+  line-height: 1;
+}
+.text-editor-note-handle:hover { opacity: 0.8; }
+
+.text-editor-note-edit {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: var(--text-editor-transition);
+}
+.text-editor-note-edit:hover {
+  opacity: 1;
+  background: var(--text-editor-focus-soft);
+}
+
+.text-editor-note-rename-input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--text-editor-primary-font);
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--text-editor-button-active);
+  border-radius: 5px;
+  background: var(--text-editor-bg-color);
+  color: var(--text-editor-text-color);
+  outline: none;
+}
+
+/* Legacy classes some stored lists may still carry */
+#textEditorNoteList li.separator { display: none; }
+#textEditorNoteList li.new-entry { border-style: dashed; font-style: italic; color: var(--text-editor-muted); }
+
+/* Kept for compatibility: JS toggles this class, but the palette now
+   follows the popup's body.dark globals automatically. */
+.text-editor-container.text-editor-dark { }
+
+/* Optional action buttons (not rendered in the popup config) */
+.text-editor-action-btn {
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--text-editor-border-radius);
+  cursor: pointer;
+  transition: var(--text-editor-transition);
+  color: #fff;
+}
+.text-editor-search-btn { background: var(--text-editor-search-btn-bg); }
+.text-editor-search-btn:hover { background: var(--text-editor-search-btn-hover); }
+.text-editor-clear-btn { background: var(--text-editor-clear-btn-bg); }
+.text-editor-clear-btn:hover { background: var(--text-editor-clear-btn-hover); }
